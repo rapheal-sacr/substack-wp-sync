@@ -207,11 +207,22 @@ class Substack_Sync_Admin
     {
         $options = get_option('substack_sync_settings', []);
         $mappings = $options['category_mapping'] ?? [];
+        $selected_post_type = $options['default_post_type'] ?? (post_type_exists('reports') ? 'reports' : 'post');
+        $taxonomy = 'category';
+        if ($selected_post_type === 'reports' && taxonomy_exists('reports-category')) {
+            $taxonomy = 'reports-category';
+        }
 
         echo '<div id="category-mapping-container">';
         echo '<p class="description">Map keywords found in posts to WordPress categories. Posts containing these keywords will be automatically assigned to the selected categories.</p>';
 
-        $categories = get_categories(['hide_empty' => false]);
+        $categories = get_terms([
+            'taxonomy' => $taxonomy,
+            'hide_empty' => false,
+        ]);
+        if (is_wp_error($categories)) {
+            $categories = [];
+        }
 
         if (empty($mappings)) {
             $mappings = [['keyword' => '', 'category' => '']]; // Default empty row

@@ -410,10 +410,12 @@ class Substack_Sync_Processor
         if (empty($post_type) || ! post_type_exists($post_type)) {
             $post_type = post_type_exists('reports') ? 'reports' : 'post';
         }
+      
+        $mapping_taxonomy = $this->get_mapping_taxonomy($post_type);
 
         // Apply category mapping based on content and title
         $full_text = $title . ' ' . $content;
-        $categories = $this->apply_category_mapping($full_text);
+        $categories = $mapping_taxonomy ? $this->apply_category_mapping($full_text) : [];
 
         $post_data = [
             'post_title' => $title,
@@ -426,10 +428,38 @@ class Substack_Sync_Processor
 
         // Add categories if mapping found any
         if (! empty($categories)) {
-            $post_data['post_category'] = $categories;
+            if ($mapping_taxonomy === 'category') {
+                $post_data['post_category'] = $categories;
+            } else {
+                $post_data['tax_input'] = [
+                    $mapping_taxonomy => $categories,
+                ];
+            }
         }
 
         return $post_data;
+    }
+
+    /**
+     * Determine the taxonomy used for category mapping.
+     *
+     * @param string $post_type The post type being imported.
+     * @return string Taxonomy slug or empty string if none applies.
+     */
+    private function get_mapping_taxonomy(string $post_type): string
+    {
+        if ($post_type === 'reports' && taxonomy_exists('reports-category')) {
+            return 'reports-category';
+        }
+
+        if (taxonomy_exists('category')) {
+            $taxonomies = get_object_taxonomies($post_type);
+            if (in_array('category', $taxonomies, true)) {
+                return 'category';
+            }
+        }
+
+        return '';
     }
 
     /**
