@@ -85,6 +85,14 @@ class Substack_Sync_Admin
         );
 
         add_settings_field(
+            'default_post_type',
+            'Default Post Type',
+            [$this, 'default_post_type_callback'],
+            'substack-sync',
+            'substack_sync_main'
+        );
+
+        add_settings_field(
             'category_mapping',
             'Category Mapping',
             [$this, 'category_mapping_callback'],
@@ -167,17 +175,54 @@ class Substack_Sync_Admin
     }
 
     /**
+     * Default post type field callback.
+     */
+    public function default_post_type_callback(): void
+    {
+        $options = get_option('substack_sync_settings', []);
+        $default_post_type = post_type_exists('reports') ? 'reports' : 'post';
+        $selected = $options['default_post_type'] ?? $default_post_type;
+
+        $post_types = get_post_types(
+            [
+                'public' => true,
+                'show_ui' => true,
+            ],
+            'objects'
+        );
+
+        echo '<select name="substack_sync_settings[default_post_type]">';
+        foreach ($post_types as $post_type) {
+            $value = $post_type->name;
+            echo '<option value="' . esc_attr($value) . '"' . selected($selected, $value, false) . '>' . esc_html($post_type->labels->singular_name) . '</option>';
+        }
+        echo '</select>';
+        echo '<p class="description">Choose which post type should receive imported Substack content (e.g., Reports).</p>';
+    }
+
+    /**
      * Category mapping field callback.
      */
     public function category_mapping_callback(): void
     {
         $options = get_option('substack_sync_settings', []);
         $mappings = $options['category_mapping'] ?? [];
+        $selected_post_type = $options['default_post_type'] ?? (post_type_exists('reports') ? 'reports' : 'post');
+        $taxonomy = 'category';
+        if ($selected_post_type === 'reports' && taxonomy_exists('reports-category')) {
+            $taxonomy = 'reports-category';
+        }
 
         echo '<div id="category-mapping-container">';
         echo '<p class="description">Map keywords found in posts to WordPress categories. Posts containing these keywords will be automatically assigned to the selected categories.</p>';
 
-        $categories = get_categories(['hide_empty' => false]);
+        $categories = get_terms([
+            'taxonomy' => $taxonomy,
+            'hide_empty' => false,
+        ]);
+        if (is_wp_error($categories)) {
+            $categories = [];
+        }
 
         if (empty($mappings)) {
             $mappings = [['keyword' => '', 'category' => '']]; // Default empty row
