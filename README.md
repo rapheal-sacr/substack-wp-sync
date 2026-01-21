@@ -48,6 +48,7 @@ Navigate to **Settings > Substack Sync** in your WordPress admin to configure:
 - **RSS Feed URL:** Your Substack feed URL (e.g., https://yourname.substack.com/feed)
 - **Default Author:** WordPress user to assign as author for imported posts
 - **Default Post Status:** Import posts as Draft or Published
+- **Default Post Type:** Choose which post type receives imported content (e.g., Reports)
 - **Category Mapping:** Keyword-based automatic category assignment with dynamic row management
 - **Data Cleanup:** Option to delete plugin data on uninstall
 
