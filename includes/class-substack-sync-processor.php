@@ -406,6 +406,10 @@ class Substack_Sync_Processor
     {
         $content = $this->process_content($item->get_content());
         $title = $item->get_title();
+        $post_type = $this->settings['default_post_type'] ?? '';
+        if (empty($post_type) || ! post_type_exists($post_type)) {
+            $post_type = post_type_exists('reports') ? 'reports' : 'post';
+        }
 
         // Apply category mapping based on content and title
         $full_text = $title . ' ' . $content;
@@ -417,7 +421,7 @@ class Substack_Sync_Processor
             'post_status' => $this->settings['default_post_status'] ?? 'draft',
             'post_author' => $this->settings['default_author'] ?? 1,
             'post_date' => $item->get_date('Y-m-d H:i:s'),
-            'post_type' => 'post',
+            'post_type' => $post_type,
         ];
 
         // Add categories if mapping found any
