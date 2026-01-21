@@ -316,6 +316,7 @@ class Substack_Sync_Processor
         if ($post_id && ! is_wp_error($post_id)) {
             $this->log_sync($post_id, $guid, 'imported', $post_title);
             $this->process_post_images($post_id, $post_data['post_content']);
+            $this->ensure_default_template($post_id, $post_data['post_type']);
 
             if ($return_status) {
                 return [
@@ -373,6 +374,7 @@ class Substack_Sync_Processor
         if ($post_id && ! is_wp_error($post_id)) {
             $this->log_sync($post_id, $guid, 'updated', $post_title);
             $this->process_post_images($post_id, $post_data['post_content']);
+            $this->ensure_default_template($post_id, $post_data['post_type']);
 
             if ($return_status) {
                 return [
@@ -508,6 +510,21 @@ class Substack_Sync_Processor
                 }
             }
         }
+    }
+
+    /**
+     * Ensure imported reports use the default template.
+     *
+     * @param int $post_id The WordPress post ID.
+     * @param string $post_type The post type being imported.
+     */
+    private function ensure_default_template(int $post_id, string $post_type): void
+    {
+        if ($post_type !== 'reports') {
+            return;
+        }
+
+        update_post_meta($post_id, '_wp_page_template', 'default');
     }
 
     /**
