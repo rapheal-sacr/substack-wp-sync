@@ -524,7 +524,7 @@ class Substack_Sync_Processor
             return;
         }
 
-        update_post_meta($post_id, '_wp_page_template', 'default');
+        delete_post_meta($post_id, '_wp_page_template');
     }
 
     /**
