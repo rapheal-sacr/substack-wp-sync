@@ -412,6 +412,7 @@ class Substack_Sync_Processor
         if (empty($post_type) || ! post_type_exists($post_type)) {
             $post_type = post_type_exists('reports') ? 'reports' : 'post';
         }
+      
         $mapping_taxonomy = $this->get_mapping_taxonomy($post_type);
 
         // Apply category mapping based on content and title
